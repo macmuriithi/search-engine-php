@@ -1,23 +1,26 @@
-PHP Search Engine
-This repository, PHP-Search-Engine, contains a 12-stage implementation of a search engine built in PHP, starting from a basic binary presence lookup and progressing to a scalable inverted index with SQLite storage. Each stage introduces new features and optimizations, making this an educational resource for understanding search engine development.
-Overview
-The search engine evolves through 12 stages, each building on the previous one to add functionality and improve performance. The final implementation supports:
+# PHP Search Engine
 
-Persistent storage with SQLite.
-Complex boolean queries (AND, OR, NOT, parentheses).
-Stemming for word variations.
-TF-IDF ranking for relevance.
-Efficient indexing for scalability.
+This repository, **PHP-Search-Engine**, contains a 12-stage implementation of a search engine built in PHP, starting from a basic binary presence lookup and progressing to a scalable inverted index with SQLite storage. Each stage introduces new features and optimizations, making this an educational resource for understanding search engine development.
+
+## Overview
+The search engine evolves through 12 stages, each building on the previous one to add functionality and improve performance. The final implementation supports:
+- Persistent storage with SQLite.
+- Complex boolean queries (AND, OR, NOT, parentheses).
+- Stemming for word variations.
+- TF-IDF ranking for relevance.
+- Efficient indexing for scalability.
 
 Below is a detailed breakdown of each stage, including optimizations and code snippets.
-Stage 1: Basic Binary Presence Lookup
-Objective: Check if a term exists in a collection of documents using a linear scan.
-Optimizations:
 
-Case-insensitive search using stripos.
-Simple in-memory array for document storage.
+## Stage 1: Basic Binary Presence Lookup
+**Objective**: Check if a term exists in a collection of documents using a linear scan.
 
-Snippet:
+**Optimizations**:
+- Case-insensitive search using `stripos`.
+- Simple in-memory array for document storage.
+
+**Snippet**:
+```php
 public function search($query) {
     foreach ($this->documents as $doc) {
         if (stripos($doc, strtolower($query)) !== false) {
@@ -26,16 +29,19 @@ public function search($query) {
     }
     return false;
 }
+```
 
-Stage 2: Document IDs and List of Matching Documents
-Objective: Assign unique IDs to documents and return IDs of documents containing the query term.
-Optimizations:
+## Stage 2: Document IDs and List of Matching Documents
+**Objective**: Assign unique IDs to documents and return IDs of documents containing the query term.
 
-Introduced document IDs for tracking.
-Returned array of matching document IDs instead of a booleanಸ
+**Optimizations**:
+- Introduced document IDs for tracking.
+- Returned array of matching document IDs instead of a booleanಸ
 
 System: boolean.
-Snippet:
+
+**Snippet**:
+```php
 public function search($query) {
     $results = [];
     foreach ($this->documents as $docId => $doc) {
@@ -45,15 +51,17 @@ public function search($query) {
     }
     return $results;
 }
+```
 
-Stage 3: Basic Tokenization and Exact Word Matching
-Objective: Tokenize documents into words and enable exact word matching.
-Optimizations:
+## Stage 3: Basic Tokenization and Exact Word Matching
+**Objective**: Tokenize documents into words and enable exact word matching.
 
-Tokenized documents into words, removing punctuation and duplicates.
-Improved precision by matching whole words instead of substrings.
+**Optimizations**:
+- Tokenized documents into words, removing punctuation and duplicates.
+- Improved precision by matching whole words instead of substrings.
 
-Snippet:
+**Snippet**:
+```php
 private function tokenizeDocuments() {
     $tokenized = [];
     foreach ($this->documents as $docId => $doc) {
@@ -63,15 +71,17 @@ private function tokenizeDocuments() {
     }
     return $tokenized;
 }
+```
 
-Stage 4: Simple Inverted Index
-Objective: Introduce an inverted index for faster lookups.
-Optimizations:
+## Stage 4: Simple Inverted Index
+**Objective**: Introduce an inverted index for faster lookups.
 
-Built an inverted index mapping words to document IDs.
-Reduced search time from O(n) to O(1) per term lookup.
+**Optimizations**:
+- Built an inverted index mapping words to document IDs.
+- Reduced search time from O(n) to O(1) per term lookup.
 
-Snippet:
+**Snippet**:
+```php
 private function buildInvertedIndex() {
     $index = [];
     foreach ($this->documents as $docId => $doc) {
@@ -86,15 +96,17 @@ private function buildInvertedIndex() {
     }
     return $index;
 }
+```
 
-Stage 5: Multi-Word Queries with AND Logic
-Objective: Support multi-word queries requiring all terms (AND logic).
-Optimizations:
+## Stage 5: Multi-Word Queries with AND Logic
+**Objective**: Support multi-word queries requiring all terms (AND logic).
 
-Tokenized queries and computed intersection of document ID sets.
-Added document content retrieval for result display.
+**Optimizations**:
+- Tokenized queries and computed intersection of document ID sets.
+- Added document content retrieval for result display.
 
-Snippet:
+**Snippet**:
+```php
 public function search($query) {
     $terms = array_filter(explode(" ", preg_replace("/[.,!?]/", "", strtolower($query))));
     $docSets = [];
@@ -111,30 +123,34 @@ public function search($query) {
     }
     return array_values($results);
 }
+```
 
-Stage 6: Boolean Logic (AND/OR)
-Objective: Add support for OR operator in boolean queries.
-Optimizations:
+## Stage 6: Boolean Logic (AND/OR)
+**Objective**: Add support for OR operator in boolean queries.
 
-Parsed queries with AND/OR operators using preg_split.
-Supported OR (union) alongside AND (intersection) for flexible queries.
+**Optimizations**:
+- Parsed queries with AND/OR operators using `preg_split`.
+- Supported OR (union) alongside AND (intersection) for flexible queries.
 
-Snippet:
+**Snippet**:
+```php
 $parts = preg_split("/\s+(AND|OR)\s+/i", $query, -1, PREG_SPLIT_DELIM_CAPTURE);
 if ($operator === "AND") {
     $results = array_intersect($docSet1, $docSet2);
 } elseif ($operator === "OR") {
     $results = array_unique(array_merge($docSet1, $docSet2));
 }
+```
 
-Stage 7: Term Frequency Tracking and Ranking
-Objective: Track term frequencies and rank results by frequency.
-Optimizations:
+## Stage 7: Term Frequency Tracking and Ranking
+**Objective**: Track term frequencies and rank results by frequency.
 
-Stored term frequencies in the inverted index.
-Ranked documents by sum of term frequencies for query terms.
+**Optimizations**:
+- Stored term frequencies in the inverted index.
+- Ranked documents by sum of term frequencies for query terms.
 
-Snippet:
+**Snippet**:
+```php
 foreach ($results as $docId) {
     $score = 0;
     $terms = ...; // Query terms
@@ -146,18 +162,22 @@ foreach ($results as $docId) {
     $rankedResults[$docId] = $score;
 }
 arsort($rankedResults);
+```
 
-Stage 8: TF-IDF Scoring
-Objective: Implement TF-IDF (Term Frequency-Inverse Document Frequency) scoring for more accurate ranking.
-Description:TF-IDF is a core ranking mechanism that balances term frequency (how often a term appears in a document) with its rarity across the document collection, ensuring more relevant results. Term Frequency (TF) measures the importance of a term within a specific document, calculated as the number of times the term appears divided by the document's total word count (normalization). Inverse Document Frequency (IDF) reduces the weight of terms that appear in many documents, calculated as the logarithm of the total number of documents divided by the number of documents containing the term. The TF-IDF score for a term is the product of TF and IDF, and the total score for a document is the sum of TF-IDF scores for all query terms. This approach prioritizes documents where query terms are both frequent and rare across the collection, improving relevance over simple frequency-based ranking.
-Optimizations:
+## Stage 8: TF-IDF Scoring
+**Objective**: Implement TF-IDF (Term Frequency-Inverse Document Frequency) scoring for more accurate ranking.
 
-Added document length tracking to normalize TF (term frequency / document length).
-Implemented IDF calculation using log(N/df), where N is the total number of documents and df is the number of documents containing the term.
-Ranked results by the sum of TF-IDF scores, ensuring documents with higher relevance (frequent and rare terms) rank higher.
-Improved result quality by penalizing common terms (e.g., "the") that appear in most documents.
+**Description**:
+TF-IDF is a core ranking mechanism that balances term frequency (how often a term appears in a document) with its rarity across the document collection, ensuring more relevant results. Term Frequency (TF) measures the importance of a term within a specific document, calculated as the number of times the term appears divided by the document's total word count (normalization). Inverse Document Frequency (IDF) reduces the weight of terms that appear in many documents, calculated as the logarithm of the total number of documents divided by the number of documents containing the term. The TF-IDF score for a term is the product of TF and IDF, and the total score for a document is the sum of TF-IDF scores for all query terms. This approach prioritizes documents where query terms are both frequent and rare across the collection, improving relevance over simple frequency-based ranking.
 
-Snippet:
+**Optimizations**:
+- Added document length tracking to normalize TF (`term frequency / document length`).
+- Implemented IDF calculation using `log(N/df)`, where `N` is the total number of documents and `df` is the number of documents containing the term.
+- Ranked results by the sum of TF-IDF scores, ensuring documents with higher relevance (frequent and rare terms) rank higher.
+- Improved result quality by penalizing common terms (e.g., "the") that appear in most documents.
+
+**Snippet**:
+```php
 private function calculateIDF($term) {
     $df = isset($this->invertedIndex[$term]) ? count($this->invertedIndex[$term]) : 0;
     return $df > 0 ? log($this->docCount / $df) : 0;
@@ -180,27 +200,31 @@ public function search($query) {
     arsort($rankedResults);
     return array_keys($rankedResults);
 }
+```
 
-Stage 9: NOT Operator
-Objective: Add support for NOT operator to exclude terms.
-Optimizations:
+## Stage 9: NOT Operator
+**Objective**: Add support for NOT operator to exclude terms.
 
-Used array_diff to exclude documents containing specified terms.
-Maintained TF-IDF scoring for included terms.
+**Optimizations**:
+- Used `array_diff` to exclude documents containing specified terms.
+- Maintained TF-IDF scoring for included terms.
 
-Snippet:
+**Snippet**:
+```php
 if ($operator === "NOT") {
     $results = array_diff($docSet1, $docSet2);
 }
+```
 
-Stage 10: Complex Boolean Queries with Parentheses
-Objective: Support nested boolean expressions with parentheses.
-Optimizations:
+## Stage 10: Complex Boolean Queries with Parentheses
+**Objective**: Support nested boolean expressions with parentheses.
 
-Implemented a recursive descent parser for complex queries.
-Handled nested AND, OR, and NOT operators efficiently.
+**Optimizations**:
+- Implemented a recursive descent parser for complex queries.
+- Handled nested AND, OR, and NOT operators efficiently.
 
-Snippet:
+**Snippet**:
+```php
 private function parseQuery($tokens, &$index) {
     $results = [];
     $operator = null;
@@ -218,15 +242,17 @@ private function parseQuery($tokens, &$index) {
     }
     // ... Combine results
 }
+```
 
-Stage 11: Stemming for Word Variations
-Objective: Add stemming to match word variations (e.g., "dogs" → "dog").
-Optimizations:
+## Stage 11: Stemming for Word Variations
+**Objective**: Add stemming to match word variations (e.g., "dogs" → "dog").
 
-Implemented a simplified Porter Stemmer.
-Stored stemmed terms in the inverted index, improving recall.
+**Optimizations**:
+- Implemented a simplified Porter Stemmer.
+- Stored stemmed terms in the inverted index, improving recall.
 
-Snippet:
+**Snippet**:
+```php
 class PorterStemmer {
     public static function stem($word) {
         $word = strtolower($word);
@@ -244,34 +270,38 @@ class PorterStemmer {
         return $word;
     }
 }
+```
 
-Stage 12: Persistent Storage with SQLite
-Objective: Use SQLite for scalable document and index storage.
-Optimizations:
+## Stage 12: Persistent Storage with SQLite
+**Objective**: Use SQLite for scalable document and index storage.
 
-Stored documents, inverted index, and document lengths in SQLite tables.
-Added an index on the term column for faster lookups.
-Maintained all previous features (stemming, boolean queries, TF-IDF).
+**Optimizations**:
+- Stored documents, inverted index, and document lengths in SQLite tables.
+- Added an index on the `term` column for faster lookups.
+- Maintained all previous features (stemming, boolean queries, TF-IDF).
 
-Snippet:
+**Snippet**:
+```php
 private function initializeDatabase() {
     $this->db->exec('CREATE TABLE documents (doc_id INTEGER PRIMARY KEY, content TEXT)');
     $this->db->exec('CREATE TABLE inverted_index (term TEXT, doc_id INTEGER, frequency INTEGER, PRIMARY KEY (term, doc_id))');
     $this->db->exec('CREATE TABLE doc_lengths (doc_id INTEGER PRIMARY KEY, length INTEGER)');
     $this->db->exec('CREATE INDEX idx_term ON inverted_index (term)');
 }
+```
 
-Installation
+## Installation
+1. Ensure PHP and the SQLite3 extension are installed.
+2. Clone the repository:
+   ```bash
+   git clone https://github.com/<your-username>/PHP-Search-Engine.git
+   ```
+3. Place the PHP file (e.g., `search_engine.php`) in your web server directory.
+4. For persistent storage, modify the SQLite connection to use a file (e.g., `new SQLite3('database.sqlite')`).
+5. Run the script or integrate it into your application.
 
-Ensure PHP and the SQLite3 extension are installed.
-Clone the repository:git clone https://github.com/<your-username>/PHP-Search-Engine.git
-
-
-Place the PHP file (e.g., search_engine.php) in your web server directory.
-For persistent storage, modify the SQLite connection to use a file (e.g., new SQLite3('database.sqlite')).
-Run the script or integrate it into your application.
-
-Usage
+## Usage
+```php
 $searchEngine = new BasicSearch();
 $query = "(dog AND lazy) OR cats";
 $results = $searchEngine->search($query);
@@ -279,13 +309,13 @@ echo "Query '$query' found in documents: " . (empty($results) ? "None" : implode
 foreach ($results as $docId) {
     echo "Document $docId: " . $searchEngine->getDocument($docId) . "\n";
 }
+```
 
-Future Improvements
+## Future Improvements
+- Add support for phrase queries (e.g., "quick fox").
+- Implement a more robust stemming library (e.g., Snowball).
+- Introduce synonyms or fuzzy matching.
+- Optimize SQLite queries for larger datasets.
 
-Add support for phrase queries (e.g., "quick fox").
-Implement a more robust stemming library (e.g., Snowball).
-Introduce synonyms or fuzzy matching.
-Optimize SQLite queries for larger datasets.
-
-License
+## License
 This project is licensed under the MIT License. Feel free to use, modify, and distribute it for educational purposes.
